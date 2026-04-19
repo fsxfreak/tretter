@@ -12,6 +12,7 @@ dependencies = [
     "niquests==3.18.5",
     "python-dotenv==1.2.2",
     "qh3==1.7.1",
+    "responses>=0.26.0",
     "ty==0.0.29",
     "urllib3==2.6.3",
     "urllib3-future==2.19.906",
@@ -26,3 +27,9 @@ dev = [
 
 [tool.ty.environment]
 root = ["./src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+filterwarnings = [
+    "ignore:SOCKS support in urllib3.*",
+]
