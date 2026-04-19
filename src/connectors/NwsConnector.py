@@ -1,7 +1,7 @@
+import niquests
 import logging
 from enum import Enum
 from dataclasses import dataclass
-import requests
 import datetime as dt
 from connectors.types import Connector, Observation, Metadata, Sample, ObservationType
 from typing import List, Dict, Iterator
@@ -43,7 +43,7 @@ class NwsConnector(Connector):
     def _request_raw_data(self) -> Dict[str, Dict]:
         station_data = {}
         for station in self.stations:
-            result = requests.get(
+            result = niquests.get(
                 self._make_url(station),
                 params=self.DEFAULT_PARAMS,
                 headers=self.headers,

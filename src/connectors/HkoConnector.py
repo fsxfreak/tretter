@@ -1,5 +1,5 @@
 import logging
-import requests
+import niquests
 
 from connectors.types import Connector, Observation, ObservationType, Sample, Metadata
 from dataclasses import dataclass
@@ -25,7 +25,7 @@ class HkoConnector(Connector):
     }
 
     def _request_raw_data(self) -> Dict:
-        result = requests.get(
+        result = niquests.get(
             self.API_URL, params=self.DEFAULT_PARAMS, headers=self.headers
         )
         return result.json()
