@@ -1,39 +1,42 @@
+from connectors.NwsConnector import NwsConnector
 import json
 from connectors.types import ObservationType
 import datetime as dt
 import responses
-from connectors.HkoConnector import HkoConnector
 import logging
 
 logger = logging.getLogger(__name__)
-SAMPLE_DATA = "sample_responses/data-weather-gov-hk-weatherapi-opendata-weatherphp.json"
+SAMPLE_DATA = (
+    "sample_responses/api-weather-gov-stations-station-observation-latest.json"
+)
 
 
 @responses.activate
 def test_observe_retrieves_temperature():
+    connector = NwsConnector()
+    url = connector._make_url("KJFK")
     with open(SAMPLE_DATA, "r") as f:
         mock_json = json.load(f)
         responses.get(
-            HkoConnector.API_URL,
+            url,
             json=mock_json,
             status=200,
         )
 
-    connector = HkoConnector()
     observations = connector.observe()
 
     found_observation = False
     for observation in observations:
         assert observation.sample.timestamp == dt.datetime.fromisoformat(
-            "2026-04-20T06:00:00+08:00"
+            "2026-04-19T21:51:00+00:00"
         ).astimezone(tz=dt.timezone.utc)
 
-        if observation.metadata.friendly_name == "Hong Kong Observatory":
-            assert observation.sample.value == 25
+        if (
+            observation.metadata.friendly_name
+            == "New York, Kennedy International Airport"
+        ):
+            assert observation.sample.value == 9.4
             assert observation.type == ObservationType.TEMPERATURE
             found_observation = True
 
     assert found_observation, "No expected observation found"
-
-
-# TODO test error handling
