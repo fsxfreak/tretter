@@ -1,8 +1,10 @@
-from dataclasses import dataclass
 import logging
-from connectors.types import Connector, Observation, ObservationType, Sample, Metadata
 import requests
+
+from connectors.types import Connector, Observation, ObservationType, Sample, Metadata
+from dataclasses import dataclass
 from typing import List, Dict, Tuple
+
 import datetime as dt
 
 logger = logging.getLogger(__name__)
@@ -22,9 +24,6 @@ class HkoConnector(Connector):
         "lang": "en",
     }
 
-    def __init__(self):
-        pass
-
     def _request_raw_data(self) -> Dict:
         result = requests.get(
             self.API_URL, params=self.DEFAULT_PARAMS, headers=self.headers
@@ -37,12 +36,14 @@ class HkoConnector(Connector):
             output.append(
                 _TemperatureData(
                     place=d["place"],
-                    value=d["value"],
+                    value=float(d["value"]),
                     unit=d["unit"],
                 )
             )
 
-        timestamp = dt.datetime.fromisoformat(raw_data["temperature"]["recordTime"])
+        timestamp = dt.datetime.fromisoformat(
+            raw_data["temperature"]["recordTime"]
+        ).astimezone(dt.timezone.utc)
         return timestamp, output
 
     def observe(self) -> List[Observation]:
@@ -51,10 +52,11 @@ class HkoConnector(Connector):
 
         output = []
         for d in data:
+            # TODO retrieve coordinates of location from API (probably cache them)
             obs = Observation(
                 ObservationType.TEMPERATURE,
                 Sample(timestamp, d.value),
-                Metadata(d.place),
+                Metadata(d.place, coordinates=(0, 0)),
             )
             output.append(obs)
         return output

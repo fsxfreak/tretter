@@ -3,7 +3,7 @@ import os
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from datetime import datetime
-from typing import List
+from typing import List, Tuple
 
 
 @dataclass
@@ -14,7 +14,8 @@ class Sample:
 
 @dataclass
 class Metadata:
-    location: str
+    friendly_name: str
+    coordinates: Tuple[float, float]
 
 
 class ObservationType(Enum):
@@ -37,6 +38,7 @@ class Observation:
 class Connector(ABC):
     @property
     def headers(self):
+        # TODO maybe use pydantic here if more configurability needed
         return {"User-Agent": f"(tretter, {os.getenv('USER_AGENT_EMAIL', 'tretter')})"}
 
     @abstractmethod
