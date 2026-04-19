@@ -1,0 +1,7 @@
+[dependency-groups]
+dev = [
+    "ty>=0.0.29",
+]
+
+[tool.ty.environment]
+root = ["./src"]
