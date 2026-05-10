@@ -1,9 +1,11 @@
-from enum import auto, Enum
 import os
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from datetime import datetime
+from enum import Enum, auto
 from typing import List, Tuple
+
+from niquests import Response
 
 
 @dataclass

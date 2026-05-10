@@ -1,7 +1,9 @@
-from connectors.NwsConnector import NwsConnector
-from connectors.HkoConnector import HkoConnector
-from dotenv import load_dotenv
 import logging
+
+from dotenv import load_dotenv
+
+from connectors.HkoConnector import HkoConnector
+from connectors.NwsConnector import NwsConnector
 
 logger = logging.getLogger(__name__)
 
@@ -14,8 +16,12 @@ def main():
 
     observations = []
     for connector in connectors:
-        observations.extend(connector.observe())
+        logger.info(f"connector: {connector}")
+        obs = connector.observe()
+        logger.info(f"num observations: {len(obs)}")
+        observations.extend(obs)
 
+    logger.info(f"print num observations: {len(observations)}")
     formatted_obs = "\n".join(str(obs) for obs in observations)
     logger.info(f"observations:\n{formatted_obs}")
 

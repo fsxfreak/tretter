@@ -1,11 +1,13 @@
-import niquests
-import logging
-from enum import Enum
-from dataclasses import dataclass
 import datetime as dt
-from connectors.types import Connector, Observation, Metadata, Sample, ObservationType
-from typing import List, Dict, Iterator
+import logging
+from dataclasses import dataclass
+from enum import Enum
+from typing import Dict, Iterator, List
 
+import niquests
+
+from connectors.helpers.request import safe_request
+from connectors.types import Connector, Metadata, Observation, ObservationType, Sample
 
 logger = logging.getLogger(__name__)
 
@@ -43,12 +45,14 @@ class NwsConnector(Connector):
     def _request_raw_data(self) -> Dict[str, Dict]:
         station_data = {}
         for station in self.stations:
-            result = niquests.get(
+            result = safe_request(
+                niquests.get,
                 self._make_url(station),
                 params=self.DEFAULT_PARAMS,
                 headers=self.headers,
             )
-            station_data[station] = result.json()
+            if result:
+                station_data[station] = result.json()
 
         return station_data
 
@@ -95,8 +99,14 @@ class NwsConnector(Connector):
 
     def _parse_data(self, station_data: Dict) -> Iterator[Observation]:
         for station in self.stations:
+            if station not in station_data:
+                logger.warning(f"No data available to parse for station {station}.")
+                continue
             yield from self._parse_station_data(station_data[station])
 
     def observe(self) -> List[Observation]:
         raw_data = self._request_raw_data()
         return list(self._parse_data(raw_data))
+
+    def __str__(self) -> str:
+        return "nws"
