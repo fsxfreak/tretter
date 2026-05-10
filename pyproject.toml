@@ -18,7 +18,7 @@ dependencies = [
     "urllib3-future==2.19.906",
     "wassima==2.0.6",
 ]
-requires-python = ">=3.14"
+requires-python = ">=3.13"
 
 [dependency-groups]
 dev = [
