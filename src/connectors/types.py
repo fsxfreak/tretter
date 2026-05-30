@@ -5,8 +5,6 @@ from datetime import datetime
 from enum import Enum, auto
 from typing import List, Tuple
 
-from niquests import Response
-
 
 @dataclass
 class Sample:
