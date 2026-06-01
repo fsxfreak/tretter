@@ -14,6 +14,7 @@ from connectors.types import (
     Sample,
     ValueType,
     Coordinate,
+    EntityName,
 )
 
 logger = logging.getLogger(__name__)
@@ -37,6 +38,7 @@ class NwsConnector(Connector):
     OBSERVATIONS_LATEST_PATH = "/observations/latest"
     DEFAULT_STATIONS = ["KJFK"]
     DEFAULT_PARAMS = {"require_qc": "true"}
+    CONNECTOR_NAME = "nws"
     PROPERTIES_MAP = {
         "temperature": ValueType.TEMPERATURE,
     }
@@ -49,11 +51,14 @@ class NwsConnector(Connector):
     def _make_url(self, station: str) -> str:
         return f"{self.BASE_API_URL}/stations/{station}{self.OBSERVATIONS_LATEST_PATH}"
 
-    def _request_raw_data(self) -> Dict[str, Dict]:
+    def _build_entity_name(self, station_id: str) -> EntityName:
+        return EntityName(f"{self.CONNECTOR_NAME}_{station_id}".lower())
+
+    async def _request_raw_data(self) -> Dict[str, Dict]:
         station_data = {}
         for station in self.stations:
-            result = safe_request(
-                niquests.get,
+            result = await safe_request(
+                niquests.async_api.get,
                 self._make_url(station),
                 params=self.DEFAULT_PARAMS,
                 headers=self.headers,
@@ -64,7 +69,7 @@ class NwsConnector(Connector):
         return station_data
 
     def _parse_metadata(self, station_data: Dict, value_type: ValueType) -> Metadata:
-        entity_name = station_data["properties"]["stationId"].lower()
+        entity_name = self._build_entity_name(station_data["properties"]["stationId"])
         friendly_name = station_data["properties"]["stationName"]
 
         geometry = station_data["geometry"]
@@ -119,8 +124,8 @@ class NwsConnector(Connector):
                 continue
             yield from self._parse_station_data(station_data[station])
 
-    def observe(self) -> List[Observation]:
-        raw_data = self._request_raw_data()
+    async def observe(self) -> List[Observation]:
+        raw_data = await self._request_raw_data()
         return list(self._parse_data(raw_data))
 
     def __str__(self) -> str:

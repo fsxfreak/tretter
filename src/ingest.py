@@ -1,3 +1,4 @@
+import asyncio
 import logging
 
 from dotenv import load_dotenv
@@ -8,7 +9,7 @@ from connectors.NwsConnector import NwsConnector
 logger = logging.getLogger(__name__)
 
 
-def main():
+async def main():
     connectors = [
         HkoConnector(),
         NwsConnector(),
@@ -17,7 +18,7 @@ def main():
     observations = []
     for connector in connectors:
         logger.info(f"connector: {connector}")
-        obs = connector.observe()
+        obs = await connector.observe()
         logger.info(f"num observations: {len(obs)}")
         observations.extend(obs)
 
@@ -29,4 +30,4 @@ def main():
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
     load_dotenv()
-    main()
+    asyncio.run(main())

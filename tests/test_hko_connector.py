@@ -1,6 +1,5 @@
 import json
 import datetime as dt
-import responses
 from connectors.HkoConnector import HkoConnector
 from connectors.types import ValueType
 import logging
@@ -9,18 +8,14 @@ logger = logging.getLogger(__name__)
 SAMPLE_DATA = "sample_responses/data-weather-gov-hk-weatherapi-opendata-weatherphp.json"
 
 
-@responses.activate
-def test_observe_retrieves_temperature():
+async def test_observe_retrieves_temperature(niquests_mock):
     with open(SAMPLE_DATA, "r") as f:
         mock_json = json.load(f)
-        responses.get(
-            HkoConnector.API_URL,
-            json=mock_json,
-            status=200,
-        )
+    route = niquests_mock.get(HkoConnector.API_URL, params=HkoConnector.DEFAULT_PARAMS)
+    route.respond(json=mock_json, status_code=200)
 
     connector = HkoConnector()
-    observations = connector.observe()
+    observations = await connector.observe()
 
     found_observation = False
     for observation in observations:

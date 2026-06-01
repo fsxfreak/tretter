@@ -157,9 +157,12 @@ class HkoConnector(Connector):
     def __init__(self):
         self.metadata_cache: dict[EntityName, Metadata] = {}
 
-    def _request_raw_data(self) -> Dict:
-        result = safe_request(
-            niquests.get, self.API_URL, params=self.DEFAULT_PARAMS, headers=self.headers
+    async def _request_raw_data(self) -> Dict:
+        result = await safe_request(
+            niquests.async_api.get,
+            self.API_URL,
+            params=self.DEFAULT_PARAMS,
+            headers=self.headers,
         )
         if not result:
             return {}
@@ -206,8 +209,8 @@ class HkoConnector(Connector):
 
         return metadata
 
-    def observe(self) -> List[Observation]:
-        raw_data = self._request_raw_data()
+    async def observe(self) -> List[Observation]:
+        raw_data = await self._request_raw_data()
         timestamp, data = self._parse_data(raw_data)
 
         output = []

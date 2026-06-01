@@ -36,6 +36,12 @@ class Coordinate:
             cls._to_decimal(d_lat, m_lat, s_lat), cls._to_decimal(d_lon, m_lon, s_lon)
         )
 
+    def __str__(self):
+        return f"(lat={self.latitude:.2f}, lon={self.longitude:.2f})"
+
+    def __repr__(self):
+        return self.__str__()
+
 
 @dataclass
 class Metadata:
@@ -53,8 +59,8 @@ class Observation:
 
     def __str__(self):
         return (
-            f"Observation(sample=Sample({self.sample.timestamp.isoformat()},"
-            f" {self.sample.value}), metadata={self.metadata})"
+            f"Observation(Sample({self.sample.timestamp.isoformat()},"
+            f" {self.sample.value}), {self.metadata})"
         )
 
 
@@ -65,5 +71,5 @@ class Connector(ABC):
         return {"User-Agent": f"(tretter, {os.getenv('USER_AGENT_EMAIL', 'tretter')})"}
 
     @abstractmethod
-    def observe(self) -> List[Observation]:
+    async def observe(self) -> List[Observation]:
         pass
