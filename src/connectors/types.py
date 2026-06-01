@@ -3,7 +3,12 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum, auto
-from typing import List, Tuple
+from typing import List
+
+
+@dataclass(frozen=True)
+class EntityName:
+    name: str
 
 
 @dataclass
@@ -12,25 +17,43 @@ class Sample:
     value: float
 
 
-@dataclass
-class Metadata:
-    friendly_name: str
-    coordinates: Tuple[float, float]
-
-
-class ObservationType(Enum):
+class ValueType(Enum):
     TEMPERATURE = auto()
 
 
 @dataclass
+class Coordinate:
+    latitude: float
+    longitude: float
+
+    @staticmethod
+    def _to_decimal(d: float, m: float, s: float) -> float:
+        return d + m / 60 + s / 3600
+
+    @classmethod
+    def from_dms(cls, d_lat, m_lat, s_lat, d_lon, m_lon, s_lon) -> "Coordinate":
+        return cls(
+            cls._to_decimal(d_lat, m_lat, s_lat), cls._to_decimal(d_lon, m_lon, s_lon)
+        )
+
+
+@dataclass
+class Metadata:
+    entity_name: EntityName
+    value_type: ValueType
+
+    friendly_name: str
+    coordinates: Coordinate
+
+
+@dataclass
 class Observation:
-    type: ObservationType
     sample: Sample
     metadata: Metadata
 
     def __str__(self):
         return (
-            f"Observation(type={self.type.name}, sample=Sample({self.sample.timestamp.isoformat()},"
+            f"Observation(sample=Sample({self.sample.timestamp.isoformat()},"
             f" {self.sample.value}), metadata={self.metadata})"
         )
 

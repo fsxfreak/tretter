@@ -1,8 +1,8 @@
 import json
-from connectors.types import ObservationType
 import datetime as dt
 import responses
 from connectors.HkoConnector import HkoConnector
+from connectors.types import ValueType
 import logging
 
 logger = logging.getLogger(__name__)
@@ -28,9 +28,9 @@ def test_observe_retrieves_temperature():
             "2026-04-20T06:00:00+08:00"
         ).astimezone(tz=dt.timezone.utc)
 
-        if observation.metadata.friendly_name == "Hong Kong Observatory":
+        if observation.metadata.entity_name.name == "hko_kp":
             assert observation.sample.value == 25
-            assert observation.type == ObservationType.TEMPERATURE
+            assert observation.metadata.value_type == ValueType.TEMPERATURE
             found_observation = True
 
     assert found_observation, "No expected observation found"

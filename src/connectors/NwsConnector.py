@@ -7,7 +7,14 @@ from typing import Dict, Iterator, List
 import niquests
 
 from connectors.helpers.request import safe_request
-from connectors.types import Connector, Metadata, Observation, ObservationType, Sample
+from connectors.types import (
+    Connector,
+    Metadata,
+    Observation,
+    Sample,
+    ValueType,
+    Coordinate,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +38,7 @@ class NwsConnector(Connector):
     DEFAULT_STATIONS = ["KJFK"]
     DEFAULT_PARAMS = {"require_qc": "true"}
     PROPERTIES_MAP = {
-        "temperature": ObservationType.TEMPERATURE,
+        "temperature": ValueType.TEMPERATURE,
     }
 
     def __init__(self, stations: List[str] = []):
@@ -56,19 +63,27 @@ class NwsConnector(Connector):
 
         return station_data
 
-    def _parse_metadata(self, station_data: Dict) -> Metadata:
+    def _parse_metadata(self, station_data: Dict, value_type: ValueType) -> Metadata:
+        entity_name = station_data["properties"]["stationId"].lower()
         friendly_name = station_data["properties"]["stationName"]
 
         geometry = station_data["geometry"]
-        coordinates = (0, 0)
+        coordinate = Coordinate(0, 0)
         if geometry["type"] == "Point":
-            coordinates = (geometry["coordinates"][0], geometry["coordinates"][1])
+            coordinate = Coordinate(
+                geometry["coordinates"][0], geometry["coordinates"][1]
+            )
         else:
             logger.error(
                 f"Unsupported geometry type, cannot parse coordinates from {geometry}",
             )
 
-        return Metadata(friendly_name, coordinates)
+        return Metadata(
+            entity_name,
+            value_type,
+            friendly_name,
+            coordinate,
+        )
 
     def _parse_property_data(self, station_data: Dict) -> Dict[str, _PropertyData]:
         property_data = {}
@@ -92,10 +107,10 @@ class NwsConnector(Connector):
                 )
                 continue
 
-            observation_type = self.PROPERTIES_MAP[property_name]
             sample = Sample(timestamp, property_data.value)
-            metadata = self._parse_metadata(station_data)
-            yield Observation(observation_type, sample, metadata)
+            value_type = self.PROPERTIES_MAP[property_name]
+            metadata = self._parse_metadata(station_data, value_type)
+            yield Observation(sample, metadata)
 
     def _parse_data(self, station_data: Dict) -> Iterator[Observation]:
         for station in self.stations:

@@ -1,6 +1,6 @@
 from connectors.NwsConnector import NwsConnector
+from connectors.types import ValueType
 import json
-from connectors.types import ObservationType
 import datetime as dt
 import responses
 import logging
@@ -36,7 +36,7 @@ def test_observe_retrieves_temperature():
             == "New York, Kennedy International Airport"
         ):
             assert observation.sample.value == 9.4
-            assert observation.type == ObservationType.TEMPERATURE
+            assert observation.metadata.value_type == ValueType.TEMPERATURE
             found_observation = True
 
     assert found_observation, "No expected observation found"
