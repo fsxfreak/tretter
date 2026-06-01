@@ -1,8 +1,6 @@
 import datetime as dt
 import logging
-import re
 from dataclasses import dataclass
-from typing import Dict, List, Tuple
 
 import niquests
 
@@ -151,13 +149,11 @@ class HkoConnector(Connector):
         "lang": "en",
     }
     CONNECTOR_NAME = "hko"
-    ENTITY_WHITESPACE_RE = re.compile("[^\w\s]")
-    ENTITY_PARSE_RE = re.compile("[^a-zA-Z]")
 
     def __init__(self):
         self.metadata_cache: dict[EntityName, Metadata] = {}
 
-    async def _request_raw_data(self) -> Dict:
+    async def _request_raw_data(self) -> dict:
         result = await safe_request(
             niquests.async_api.get,
             self.API_URL,
@@ -170,7 +166,7 @@ class HkoConnector(Connector):
         return result.json()
 
     @classmethod
-    def _parse_data(cls, raw_data: Dict) -> Tuple[dt.datetime, List[_TemperatureData]]:
+    def _parse_data(cls, raw_data: dict) -> tuple[dt.datetime, list[_TemperatureData]]:
         output = []
         for d in raw_data["temperature"]["data"]:
             output.append(
@@ -209,7 +205,7 @@ class HkoConnector(Connector):
 
         return metadata
 
-    async def observe(self) -> List[Observation]:
+    async def observe(self) -> list[Observation]:
         raw_data = await self._request_raw_data()
         timestamp, data = self._parse_data(raw_data)
 

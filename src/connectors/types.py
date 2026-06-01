@@ -3,7 +3,6 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum, auto
-from typing import List
 
 
 @dataclass(frozen=True)
@@ -71,5 +70,5 @@ class Connector(ABC):
         return {"User-Agent": f"(tretter, {os.getenv('USER_AGENT_EMAIL', 'tretter')})"}
 
     @abstractmethod
-    async def observe(self) -> List[Observation]:
+    async def observe(self) -> list[Observation]:
         pass

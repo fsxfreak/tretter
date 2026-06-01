@@ -1,5 +1,5 @@
 import logging
-from typing import Callable, Awaitable, Optional
+from collections.abc import Callable, Awaitable
 
 import niquests
 
@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 async def safe_request(
     request_func: Callable[..., Awaitable[niquests.Response]], *args, **kwargs
-) -> Optional[niquests.Response]:
+) -> niquests.Response | None:
     kwargs.setdefault("timeout", 10)
 
     response = None

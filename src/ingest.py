@@ -3,10 +3,27 @@ import logging
 
 from dotenv import load_dotenv
 
+from connectors.types import Connector, Observation
+from collections.abc import Sequence
+
 from connectors.HkoConnector import HkoConnector
 from connectors.NwsConnector import NwsConnector
+from scheduler.Scheduler import Scheduler, Task
 
 logger = logging.getLogger(__name__)
+
+
+async def ingest(connectors: Sequence[Connector]) -> Sequence[Observation]:
+    tasks = []
+    async with asyncio.TaskGroup() as tg:
+        tasks = [tg.create_task(connector.observe()) for connector in connectors]
+
+    observations = []
+    for task in tasks:
+        obs = task.result()
+        observations.extend(obs)
+
+    return observations
 
 
 async def main():
@@ -14,17 +31,10 @@ async def main():
         HkoConnector(),
         NwsConnector(),
     ]
-
-    observations = []
+    scheduler = Scheduler()
     for connector in connectors:
-        logger.info(f"connector: {connector}")
-        obs = await connector.observe()
-        logger.info(f"num observations: {len(obs)}")
-        observations.extend(obs)
-
-    logger.info(f"print num observations: {len(observations)}")
-    formatted_obs = "\n".join(str(obs) for obs in observations)
-    logger.info(f"observations:\n{formatted_obs}")
+        scheduler.add_task(Task(connector.observe, 15))
+    await scheduler.run_tasks()
 
 
 if __name__ == "__main__":

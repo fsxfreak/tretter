@@ -2,7 +2,7 @@ import datetime as dt
 import logging
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, Iterator, List
+from collections.abc import Iterator
 
 import niquests
 
@@ -43,7 +43,7 @@ class NwsConnector(Connector):
         "temperature": ValueType.TEMPERATURE,
     }
 
-    def __init__(self, stations: List[str] = []):
+    def __init__(self, stations: list[str] = []):
         if not stations:
             stations = self.DEFAULT_STATIONS
         self.stations = stations
@@ -54,7 +54,7 @@ class NwsConnector(Connector):
     def _build_entity_name(self, station_id: str) -> EntityName:
         return EntityName(f"{self.CONNECTOR_NAME}_{station_id}".lower())
 
-    async def _request_raw_data(self) -> Dict[str, Dict]:
+    async def _request_raw_data(self) -> dict[str, dict]:
         station_data = {}
         for station in self.stations:
             result = await safe_request(
@@ -68,7 +68,7 @@ class NwsConnector(Connector):
 
         return station_data
 
-    def _parse_metadata(self, station_data: Dict, value_type: ValueType) -> Metadata:
+    def _parse_metadata(self, station_data: dict, value_type: ValueType) -> Metadata:
         entity_name = self._build_entity_name(station_data["properties"]["stationId"])
         friendly_name = station_data["properties"]["stationName"]
 
@@ -90,7 +90,7 @@ class NwsConnector(Connector):
             coordinate,
         )
 
-    def _parse_property_data(self, station_data: Dict) -> Dict[str, _PropertyData]:
+    def _parse_property_data(self, station_data: dict) -> dict[str, _PropertyData]:
         property_data = {}
         for property in self.PROPERTIES_MAP:
             data = station_data["properties"][property]
@@ -99,7 +99,7 @@ class NwsConnector(Connector):
             )
         return property_data
 
-    def _parse_station_data(self, station_data: Dict) -> Iterator[Observation]:
+    def _parse_station_data(self, station_data: dict) -> Iterator[Observation]:
         timestamp = dt.datetime.fromisoformat(
             station_data["properties"]["timestamp"]
         ).astimezone(dt.timezone.utc)
@@ -117,14 +117,14 @@ class NwsConnector(Connector):
             metadata = self._parse_metadata(station_data, value_type)
             yield Observation(sample, metadata)
 
-    def _parse_data(self, station_data: Dict) -> Iterator[Observation]:
+    def _parse_data(self, station_data: dict) -> Iterator[Observation]:
         for station in self.stations:
             if station not in station_data:
                 logger.warning(f"No data available to parse for station {station}.")
                 continue
             yield from self._parse_station_data(station_data[station])
 
-    async def observe(self) -> List[Observation]:
+    async def observe(self) -> list[Observation]:
         raw_data = await self._request_raw_data()
         return list(self._parse_data(raw_data))
 
