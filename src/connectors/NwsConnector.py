@@ -76,7 +76,7 @@ class NwsConnector(Connector):
         coordinate = Coordinate(0, 0)
         if geometry["type"] == "Point":
             coordinate = Coordinate(
-                geometry["coordinates"][0], geometry["coordinates"][1]
+                geometry["coordinates"][1], geometry["coordinates"][0]
             )
         else:
             logger.error(

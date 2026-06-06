@@ -32,7 +32,8 @@ class Coordinate:
     @classmethod
     def from_dms(cls, d_lat, m_lat, s_lat, d_lon, m_lon, s_lon) -> "Coordinate":
         return cls(
-            cls._to_decimal(d_lat, m_lat, s_lat), cls._to_decimal(d_lon, m_lon, s_lon)
+            latitude=cls._to_decimal(d_lat, m_lat, s_lat),
+            longitude=cls._to_decimal(d_lon, m_lon, s_lon),
         )
 
     def __str__(self):
